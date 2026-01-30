@@ -3746,5 +3746,6 @@ var kuromoji_default = { builder, dictionaryBuilder };
 export {
   builder,
   kuromoji_default as default,
-  dictionaryBuilder
+  dictionaryBuilder,
+  Tokenizer_default as Tokenizer
 };

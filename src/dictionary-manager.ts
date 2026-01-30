@@ -75,7 +75,7 @@ export default class DictionaryManager {
 			}
 			this.dictFiles = dictFiles;
 		} catch (error) {
-			console.log("Error loading dictionary: ", error);
+			console.error("Error loading dictionary: ", error);
 			this.dictFiles = undefined;
 		}
 

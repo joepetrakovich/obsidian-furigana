@@ -1,6 +1,6 @@
 import { Notice, Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, PluginSettings, SettingTab } from "./settings";
-import kuromoji from "./vendor/kuromoji";
+import kuromoji, { Tokenizer } from "./vendor/kuromoji";
 import { sanitizeToken } from "./token-rules";
 import { fontStyle, renderRuby, showOnHoverStyle } from "./common";
 import DictionaryManager from 'dictionary-manager';
@@ -9,30 +9,25 @@ export default class FuriganaPlugin extends Plugin {
 	settings: PluginSettings;
 	dictionaryManager: DictionaryManager;
 	styleEl: HTMLElement;
-    
+	private tokenizer: Tokenizer;
+
 	async onload() {
 		await this.loadSettings();
 		this.loadStyles();
 		this.dictionaryManager = new DictionaryManager(this);
-
 		this.addSettingTab(new SettingTab(this.app, this));
 
-		this.registerMarkdownPostProcessor(async (element, context) => {
-			const inMemoryDicFiles = await this.dictionaryManager.loadDictionary();
-			if (!inMemoryDicFiles) {
-				new Notice("Dictionary missing.  Download from settings.");
-				return;
-			}
+		this.registerMarkdownPostProcessor(async (element) => {
+			await this.loadTokenizer();
 
-			//TODO: reconsider this and the above memory management strategy
-		    const tokenizer = await kuromoji.builder({ inMemoryDicFiles }).build();
+			if (!this.tokenizer) return;
 
 			let walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
 			let currentNode: Node | null = walker.nextNode();
 			while (currentNode) {
 				const text = currentNode.nodeValue?.trim();
 				if (text) {
-					const token = tokenizer.tokenize(text);
+					const token = this.tokenizer.tokenize(text);
 					const textWithFuriganaMarkup = renderRuby(text, sanitizeToken(token));
 					const el = document.createElement('div');
 					el.innerHTML = textWithFuriganaMarkup;
@@ -73,6 +68,18 @@ export default class FuriganaPlugin extends Plugin {
 		this.styleEl = document.head.createEl('style');
 		this.styleEl.nodeValue = '';
 		this.styleEl.appendText(styles)
+	}
+
+	async loadTokenizer() {
+		if (this.tokenizer) return;
+
+		const dict = await this.dictionaryManager.loadDictionary();
+		if (!dict) {
+			new Notice("Dictionary missing.  Download from settings.");
+			return;
+		}
+
+		this.tokenizer = await kuromoji.builder({ inMemoryDicFiles: dict }).build();
 	}
 }
 

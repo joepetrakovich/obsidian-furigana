@@ -83,9 +83,9 @@ export class SettingTab extends PluginSettingTab {
 							this.plugin.loadStyles();
 							this.display();
 						})
-				}));
+				}))
 
-		new SettingGroup(containerEl)
+		// new SettingGroup(containerEl)
 			.addSetting(setting => {
 				setting.setName("Preview")
 				if (this.plugin.settings.showOnHover) {
