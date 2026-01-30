@@ -1,0 +1,221 @@
+diff --git a/node_modules/kuromoji/src/TokenizerBuilder.js b/node_modules/kuromoji/src/TokenizerBuilder.js
+index 9ef5c6a..290d9ba 100644
+--- a/node_modules/kuromoji/src/TokenizerBuilder.js
++++ b/node_modules/kuromoji/src/TokenizerBuilder.js
+@@ -27,10 +27,15 @@ var DictionaryLoader = require("./loader/NodeDictionaryLoader");
+  * @constructor
+  */
+ function TokenizerBuilder(option) {
+-    if (option.dicPath == null) {
+-        this.dic_path = "dict/";
++    if (option.inMemoryDicFiles) {
++        this.inMemoryDicFiles = option.inMemoryDicFiles;
++        this.dic_path = "";
+     } else {
+-        this.dic_path = option.dicPath;
++        if (option.dicPath == null) {
++            this.dic_path = "dict/";
++        } else {
++            this.dic_path = option.dicPath;
++        }
+     }
+ }
+ 
+@@ -39,10 +44,38 @@ function TokenizerBuilder(option) {
+  * @param {TokenizerBuilder~onLoad} callback Callback function
+  */
+ TokenizerBuilder.prototype.build = function (callback) {
+-    var loader = new DictionaryLoader(this.dic_path);
+-    loader.load(function (err, dic) {
+-        callback(err, new Tokenizer(dic));
++    var self = this;
++    var loader = new DictionaryLoader(this.dic_path, this.inMemoryDicFiles);
++    
++    var promise = new Promise(function (resolve, reject) {
++        if (self.inMemoryDicFiles) {
++            loader.loadFromMemory(self.inMemoryDicFiles, function (err, dic) {
++                if (err) {
++                    reject(err);
++                    return;
++                }
++                resolve(new Tokenizer(dic));
++            });
++            return;
++        }
++        loader.load(function (err, dic) {
++            if (err) {
++                reject(err);
++                return;
++            }
++            resolve(new Tokenizer(dic));
++        });
+     });
++    
++    if (callback) {
++        promise.then(function (tokenizer) {
++            callback(null, tokenizer);
++        }).catch(function (err) {
++            callback(err, null);
++        });
++    }
++    
++    return promise;
+ };
+ 
+ /**
+diff --git a/node_modules/kuromoji/src/kuromoji.js b/node_modules/kuromoji/src/kuromoji.js
+index 4820d23..21b4e5f 100644
+--- a/node_modules/kuromoji/src/kuromoji.js
++++ b/node_modules/kuromoji/src/kuromoji.js
+@@ -18,6 +18,7 @@
+ "use strict";
+ 
+ var TokenizerBuilder = require("./TokenizerBuilder");
++var Tokenizer = require("./Tokenizer");
+ var DictionaryBuilder = require("./dict/builder/DictionaryBuilder");
+ 
+ // Public methods
+@@ -31,3 +32,9 @@ var kuromoji = {
+ };
+ 
+ module.exports = kuromoji;
++
++// ES Module exports
++module.exports.default = kuromoji;
++module.exports.builder = kuromoji.builder;
++module.exports.dictionaryBuilder = kuromoji.dictionaryBuilder;
++module.exports.Tokenizer = Tokenizer;
+diff --git a/node_modules/kuromoji/src/loader/BrowserDictionaryLoader.js b/node_modules/kuromoji/src/loader/BrowserDictionaryLoader.js
+index 04bfdcd..eededcf 100644
+--- a/node_modules/kuromoji/src/loader/BrowserDictionaryLoader.js
++++ b/node_modules/kuromoji/src/loader/BrowserDictionaryLoader.js
+@@ -25,8 +25,9 @@ var DictionaryLoader = require("./DictionaryLoader");
+  * @param {string} dic_path Dictionary path
+  * @constructor
+  */
+-function BrowserDictionaryLoader(dic_path) {
++function BrowserDictionaryLoader(dic_path, inMemoryDicFiles) {
+     DictionaryLoader.apply(this, [dic_path]);
++    this.inMemoryDicFiles = inMemoryDicFiles;
+ }
+ 
+ BrowserDictionaryLoader.prototype = Object.create(DictionaryLoader.prototype);
+@@ -57,6 +58,51 @@ BrowserDictionaryLoader.prototype.loadArrayBuffer = function (url, callback) {
+     xhr.send();
+ };
+ 
++/**
++ * Load dictionary from memory (Uint8Array files)
++ * @param {Array.<Object>} mem_files Array of {name: string, data: Uint8Array}
++ * @param {BrowserDictionaryLoader~onLoad} load_callback Callback function
++ */
++BrowserDictionaryLoader.prototype.loadFromMemory = function (mem_files, load_callback) {
++    var dic = this.dic;
++    var getBuffer = function(name) {
++        for (var i = 0; i < mem_files.length; i++) {
++            if (mem_files[i].name === name) {
++                return mem_files[i].data.buffer;
++            }
++        }
++        throw new Error("File not found in memory: " + name);
++    };
++    try {
++        var base_buffer = new Int32Array(getBuffer("base.dat"));
++        var check_buffer = new Int32Array(getBuffer("check.dat"));
++        dic.loadTrie(base_buffer, check_buffer);
++        var token_info_buffer = new Uint8Array(getBuffer("tid.dat"));
++        var pos_buffer = new Uint8Array(getBuffer("tid_pos.dat"));
++        var target_map_buffer = new Uint8Array(getBuffer("tid_map.dat"));
++        dic.loadTokenInfoDictionaries(token_info_buffer, pos_buffer, target_map_buffer);
++        var cc_buffer = new Int16Array(getBuffer("cc.dat"));
++        dic.loadConnectionCosts(cc_buffer);
++        var unk_buffer = new Uint8Array(getBuffer("unk.dat"));
++        var unk_pos_buffer = new Uint8Array(getBuffer("unk_pos.dat"));
++        var unk_map_buffer = new Uint8Array(getBuffer("unk_map.dat"));
++        var cat_map_buffer = new Uint8Array(getBuffer("unk_char.dat"));
++        var compat_cat_map_buffer = new Uint32Array(getBuffer("unk_compat.dat"));
++        var invoke_def_buffer = new Uint8Array(getBuffer("unk_invoke.dat"));
++        dic.loadUnknownDictionaries(unk_buffer, unk_pos_buffer, unk_map_buffer, cat_map_buffer, compat_cat_map_buffer, invoke_def_buffer);
++        if (load_callback) {
++            load_callback(null, dic);
++        }
++    } catch (err) {
++        if (load_callback) {
++            load_callback(err);
++        } else {
++            throw err;
++        }
++    }
++    return dic;
++};
++
+ /**
+  * Callback
+  * @callback BrowserDictionaryLoader~onLoad
+diff --git a/node_modules/kuromoji/src/loader/NodeDictionaryLoader.js b/node_modules/kuromoji/src/loader/NodeDictionaryLoader.js
+index 26eb792..21c6884 100644
+--- a/node_modules/kuromoji/src/loader/NodeDictionaryLoader.js
++++ b/node_modules/kuromoji/src/loader/NodeDictionaryLoader.js
+@@ -26,8 +26,9 @@ var DictionaryLoader = require("./DictionaryLoader");
+  * @param {string} dic_path Dictionary path
+  * @constructor
+  */
+-function NodeDictionaryLoader(dic_path) {
++function NodeDictionaryLoader(dic_path, inMemoryDicFiles) {
+     DictionaryLoader.apply(this, [ dic_path ]);
++    this.inMemoryDicFiles = inMemoryDicFiles;
+ }
+ 
+ NodeDictionaryLoader.prototype = Object.create(DictionaryLoader.prototype);
+@@ -52,6 +53,51 @@ NodeDictionaryLoader.prototype.loadArrayBuffer = function (file, callback) {
+     });
+ };
+ 
++/**
++ * Load dictionary from memory (Uint8Array files)
++ * @param {Array.<Object>} mem_files Array of {name: string, data: Uint8Array}
++ * @param {NodeDictionaryLoader~onLoad} load_callback Callback function
++ */
++NodeDictionaryLoader.prototype.loadFromMemory = function (mem_files, load_callback) {
++    var dic = this.dic;
++    var getBuffer = function(name) {
++        for (var i = 0; i < mem_files.length; i++) {
++            if (mem_files[i].name === name) {
++                return mem_files[i].data.buffer;
++            }
++        }
++        throw new Error("File not found in memory: " + name);
++    };
++    try {
++        var base_buffer = new Int32Array(getBuffer("base.dat"));
++        var check_buffer = new Int32Array(getBuffer("check.dat"));
++        dic.loadTrie(base_buffer, check_buffer);
++        var token_info_buffer = new Uint8Array(getBuffer("tid.dat"));
++        var pos_buffer = new Uint8Array(getBuffer("tid_pos.dat"));
++        var target_map_buffer = new Uint8Array(getBuffer("tid_map.dat"));
++        dic.loadTokenInfoDictionaries(token_info_buffer, pos_buffer, target_map_buffer);
++        var cc_buffer = new Int16Array(getBuffer("cc.dat"));
++        dic.loadConnectionCosts(cc_buffer);
++        var unk_buffer = new Uint8Array(getBuffer("unk.dat"));
++        var unk_pos_buffer = new Uint8Array(getBuffer("unk_pos.dat"));
++        var unk_map_buffer = new Uint8Array(getBuffer("unk_map.dat"));
++        var cat_map_buffer = new Uint8Array(getBuffer("unk_char.dat"));
++        var compat_cat_map_buffer = new Uint32Array(getBuffer("unk_compat.dat"));
++        var invoke_def_buffer = new Uint8Array(getBuffer("unk_invoke.dat"));
++        dic.loadUnknownDictionaries(unk_buffer, unk_pos_buffer, unk_map_buffer, cat_map_buffer, compat_cat_map_buffer, invoke_def_buffer);
++        if (load_callback) {
++            load_callback(null, dic);
++        }
++    } catch (err) {
++        if (load_callback) {
++            load_callback(err);
++        } else {
++            throw err;
++        }
++    }
++    return dic;
++};
++
+ /**
+  * @callback NodeDictionaryLoader~onLoad
+  * @param {Object} err Error object

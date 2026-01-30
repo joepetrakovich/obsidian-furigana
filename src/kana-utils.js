@@ -1,6 +1,20 @@
-const getKanaTag = (tag) => `<img alt="${tag}" src='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0"></svg>' />`;
-const renderKana = (hirakana) => escapeHtml(hirakana);
+import { ruleCounter } from "./rules/rule-counter";
+import { ruleDate } from "./rules/rule-date";
+import { ruleFix } from "./rules/rule-fix";
+import { ruleMonth } from "./rules/rule-month";
+import { rulePurify } from "./rules/rule-purify";
 
+const tokenRules = [
+  ruleFix,
+  ruleMonth,
+  ruleDate,
+  ruleCounter,
+  rulePurify,
+];
+
+export const sanitizeToken = (token) => tokenRules.reduce((ret, rule) => rule(ret), token);
+
+const renderKana = (hirakana) => escapeHtml(hirakana);
 const escapeHtml = (unsafe) =>
 {
     return unsafe
@@ -93,14 +107,6 @@ const smash = (tkn) => {
     }));
 };
 
-// renders selectable kanji
-const renderKanjiLegacy = (hirakana, kanji) => {
-  const kanaStart = getKanaTag('(');
-  const kanaEnd = getKanaTag(')');
-
-  return `<ruby>${kanji}<rt class="furigana">${kanaStart}${hirakana}${kanaEnd}</rt></ruby>`;
-};
-
 // renders kanji with unselectable furigana
 const renderKanji = (hirakana, kanji) => {
   return `<ruby>${kanji}<rt class="furigana" data-rt="${hirakana}"></rt></ruby>`;
@@ -147,7 +153,6 @@ export const renderRuby = (text, token) => {
   return output;
 };
 
-export const pluginId = "furigana";
 export const showOnHoverStyle = `
 	rt.furigana:before { opacity: 0; transition: 0.1s; }
 	ruby:hover rt.furigana:before { opacity: 1; transition: 0.1s; }

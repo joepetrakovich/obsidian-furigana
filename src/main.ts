@@ -1,8 +1,8 @@
 import { Notice, Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, PluginSettings, SettingTab } from "./settings";
-import kuromoji, { Tokenizer } from "./vendor/kuromoji";
-import { sanitizeToken } from "./token-rules";
-import { fontStyle, renderRuby, showOnHoverStyle } from "./common";
+import kuromoji from "kuromoji";
+import type { Tokenizer } from "./types";
+import { sanitizeToken, fontStyle, renderRuby, showOnHoverStyle } from "./kana-utils.js";
 import DictionaryManager from 'dictionary-manager';
 
 export default class FuriganaPlugin extends Plugin {
