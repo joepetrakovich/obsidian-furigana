@@ -13,7 +13,7 @@ export default class FuriganaPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.loadStyles();
-		this.dictionaryManager = new DictionaryManager(this.app);
+		this.dictionaryManager = new DictionaryManager(this);
 
 		this.addSettingTab(new SettingTab(this.app, this));
 
@@ -24,6 +24,7 @@ export default class FuriganaPlugin extends Plugin {
 				return;
 			}
 
+			//TODO: reconsider this and the above memory management strategy
 		    const tokenizer = await kuromoji.builder({ inMemoryDicFiles }).build();
 
 			let walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);

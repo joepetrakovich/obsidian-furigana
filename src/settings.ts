@@ -21,6 +21,7 @@ export class SettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: FuriganaPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+		this.icon = "languages";
 	}
 
 	display(): void {
@@ -104,26 +105,31 @@ export class SettingTab extends PluginSettingTab {
 
 		new SettingGroup(containerEl)
 			.setHeading("Dictionary")
-			.addSetting(async (setting) => { 
+			.addSetting(async (setting) => {
 				const isDownloaded = await this.plugin.dictionaryManager.isDownloaded();
-				
+
 				if (isDownloaded) {
-					setting.setName("Dictionary is already downloaded.")
+					setting
+						.setName("Dictionary is installed.")
 						.setDesc(`Dictionary files are stored in "vault/${this.plugin.dictionaryManager.getDataPath()}".`);
 				} else {
 					const warning = document.createDocumentFragment();
 					warning.createSpan({ text: "A 20.5 MB dictionary file is required to use this plugin.", cls: "mod-warning" });
 
 					setting
-					.setName("Download dictionary")
-					.setDesc(warning)
-					.addButton(async (button) => { button
-						.setButtonText("Download").setCta()
-						.onClick(async () => {
-							await this.plugin.dictionaryManager.downloadDictionary();
-							this.display()
-						})
-					});
-				}});
+						.setName("Download dictionary")
+						.setDesc(warning)
+						.addButton(async (button) => {
+							button
+								.setButtonText("Download").setCta()
+							.onClick(async () => {
+								await this.plugin.dictionaryManager.downloadDictionary();
+								this.plugin.settings.dataDownloadVersionTag = DEFAULT_SETTINGS.dataDownloadVersionTag;
+								await this.plugin.saveSettings();
+								this.display()
+							})
+						});
+				}
+			});
 	}
 }
