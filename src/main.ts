@@ -1,23 +1,30 @@
-import { Plugin } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, PluginSettings, SettingTab } from "./settings";
 import kuromoji from "./vendor/kuromoji";
 import { sanitizeToken } from "./token-rules";
 import { fontStyle, renderRuby, showOnHoverStyle } from "./common";
-import { dataFiles } from './data/index.js'
+import DictionaryManager from 'dictionary-manager';
 
 export default class FuriganaPlugin extends Plugin {
 	settings: PluginSettings;
+	dictionaryManager: DictionaryManager;
 	styleEl: HTMLElement;
-
+    
 	async onload() {
 		await this.loadSettings();
-
 		this.loadStyles();
+		this.dictionaryManager = new DictionaryManager(this.app);
 
 		this.addSettingTab(new SettingTab(this.app, this));
 
 		this.registerMarkdownPostProcessor(async (element, context) => {
-		    const tokenizer = await kuromoji.builder({ inMemoryDicFiles: dataFiles }).build();
+			const inMemoryDicFiles = await this.dictionaryManager.loadDictionary();
+			if (!inMemoryDicFiles) {
+				new Notice("Dictionary missing.  Download from settings.");
+				return;
+			}
+
+		    const tokenizer = await kuromoji.builder({ inMemoryDicFiles }).build();
 
 			let walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
 			let currentNode: Node | null = walker.nextNode();

@@ -39,10 +39,7 @@ const context = await esbuild.context({
 	sourcesContent: true,
 	treeShaking: true,
 	outfile: "main.js",
-	minify: prod,
-	loader: {
-    '.dat': 'binary',
-	}
+	minify: prod
 });
 
 if (prod) {

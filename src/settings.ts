@@ -5,12 +5,14 @@ export interface PluginSettings {
 	showOnHover: boolean,
 	fontSize: number;
 	fontColor: string;
+	dataDownloadVersionTag: string;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
 	showOnHover: false,
 	fontSize: 10,
-	fontColor: "var(--text-normal)"
+	fontColor: "var(--text-normal)",
+	dataDownloadVersionTag: "assets"
 }
 
 export class SettingTab extends PluginSettingTab {
@@ -86,7 +88,7 @@ export class SettingTab extends PluginSettingTab {
 			.addSetting(setting => {
 				setting.setName("Preview")
 				if (this.plugin.settings.showOnHover) {
-					setting.setDesc("Hover over the kanji with your mouse to reveal the furigana.");
+					setting.setDesc("Hover over the kanji to reveal the furigana.");
 				}
 				const span = setting.controlEl.createSpan();
 				span.createEl('ruby', { text: '今日' })
@@ -99,5 +101,29 @@ export class SettingTab extends PluginSettingTab {
 					.createEl('rt', { cls: 'furigana', attr: { 'data-rt': 'おも' } });
 				span.appendText('います。');
 			});
+
+		new SettingGroup(containerEl)
+			.setHeading("Dictionary")
+			.addSetting(async (setting) => { 
+				const isDownloaded = await this.plugin.dictionaryManager.isDownloaded();
+				
+				if (isDownloaded) {
+					setting.setName("Dictionary is already downloaded.")
+						.setDesc(`Dictionary files are stored in "vault/${this.plugin.dictionaryManager.getDataPath()}".`);
+				} else {
+					const warning = document.createDocumentFragment();
+					warning.createSpan({ text: "A 20.5 MB dictionary file is required to use this plugin.", cls: "mod-warning" });
+
+					setting
+					.setName("Download dictionary")
+					.setDesc(warning)
+					.addButton(async (button) => { button
+						.setButtonText("Download").setCta()
+						.onClick(async () => {
+							await this.plugin.dictionaryManager.downloadDictionary();
+							this.display()
+						})
+					});
+				}});
 	}
 }
