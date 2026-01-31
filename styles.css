@@ -1,1 +1,13 @@
-rt.furigana:before { content: attr(data-rt); }
+rt.furigana:before { 
+	content: attr(data-rt); 
+	font-size: var(--furigana-font-size, 10px);
+    color: var(--furigana-font-color, var(--text-normal));
+	opacity: 1;
+	transition: 0.1s;
+}
+body.furigana-hover rt.furigana:before {
+  opacity: 0;
+}
+body.furigana-hover ruby:hover rt.furigana:before {
+  opacity: 1;
+}

@@ -1,14 +1,12 @@
-import { Notice, Plugin } from 'obsidian';
+import { Notice, Plugin, sanitizeHTMLToDom } from 'obsidian';
 import { DEFAULT_SETTINGS, PluginSettings, SettingTab } from "./settings";
-import kuromoji from "kuromoji";
-import type { Tokenizer } from "./types";
-import { sanitizeToken, fontStyle, renderRuby, showOnHoverStyle } from "./kana-utils.js";
+import kuromoji, { Tokenizer } from "kuromoji";
+import { sanitizeToken, renderRuby } from "./kana-utils.js";
 import DictionaryManager from 'dictionary-manager';
 
 export default class FuriganaPlugin extends Plugin {
 	settings: PluginSettings;
 	dictionaryManager: DictionaryManager;
-	styleEl: HTMLElement;
 	private tokenizer: Tokenizer;
 
 	async onload() {
@@ -28,13 +26,8 @@ export default class FuriganaPlugin extends Plugin {
 				const text = currentNode.nodeValue?.trim();
 				if (text) {
 					const token = this.tokenizer.tokenize(text);
-					const textWithFuriganaMarkup = renderRuby(text, sanitizeToken(token));
-					const el = document.createElement('div');
-					el.innerHTML = textWithFuriganaMarkup;
-					for (const child of Array.from(el.childNodes)) {
-						currentNode.parentNode?.insertBefore(child, currentNode);
-					}
-					el.remove();
+					const textWithFuriganaMarkup = sanitizeHTMLToDom(renderRuby(text, sanitizeToken(token)));
+					currentNode.parentNode?.insertBefore(textWithFuriganaMarkup, currentNode);
 					currentNode.nodeValue = null;
 				}
 
@@ -44,9 +37,9 @@ export default class FuriganaPlugin extends Plugin {
 	}
 
 	onunload() {
-		if (this.styleEl) {
-			this.styleEl.remove();
-		}
+		document.documentElement.style.removeProperty('--furigana-font-size');
+		document.documentElement.style.removeProperty('--furigana-font-color');
+		document.body.removeClass('furigana-hover');
 	}
 
 	async loadSettings() {
@@ -58,16 +51,11 @@ export default class FuriganaPlugin extends Plugin {
 	}
 
 	loadStyles() {
-		if (this.styleEl) {
-			this.styleEl.remove();
-		}
-
 		const { showOnHover, fontSize, fontColor } = this.settings;
-		const styles = fontStyle(fontSize, fontColor) + (showOnHover ? showOnHoverStyle : '');
 
-		this.styleEl = document.head.createEl('style');
-		this.styleEl.nodeValue = '';
-		this.styleEl.appendText(styles)
+		document.documentElement.style.setProperty('--furigana-font-size', `${fontSize}px`);
+		document.documentElement.style.setProperty('--furigana-font-color', `${fontColor}`);
+		document.body.toggleClass('furigana-hover', showOnHover);
 	}
 
 	async loadTokenizer() {

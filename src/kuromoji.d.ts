@@ -1,6 +1,6 @@
 declare module 'kuromoji' {
   export interface Tokenizer {
-    tokenize(text: string): any[];
+    tokenize(text: string): unknown[];
   }
 
   export interface TokenizerBuilder {
@@ -8,9 +8,9 @@ declare module 'kuromoji' {
   }
 
   export interface Kuromoji {
-    builder(option: { inMemoryDicFiles?: any[]; dicPath?: string }): TokenizerBuilder;
-    dictionaryBuilder(): any;
-    Tokenizer: any;
+    builder(option: { inMemoryDicFiles?: unknown[]; dicPath?: string }): TokenizerBuilder;
+    dictionaryBuilder(): unknown;
+    Tokenizer: unknown;
   }
 
   const kuromoji: Kuromoji;

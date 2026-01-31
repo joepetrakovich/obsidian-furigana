@@ -152,9 +152,3 @@ export const renderRuby = (text, token) => {
 
   return output;
 };
-
-export const showOnHoverStyle = `
-	rt.furigana:before { opacity: 0; transition: 0.1s; }
-	ruby:hover rt.furigana:before { opacity: 1; transition: 0.1s; }
-`;
-export const fontStyle = (size, color) => `rt.furigana:before { font-size: ${size}px; color: ${color}; }`;
