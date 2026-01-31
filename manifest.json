@@ -3,7 +3,7 @@
 	"name": "Furigana",
 	"version": "1.0.0",
 	"minAppVersion": "1.11.5",
-	"description": "Show furigana above Japanese text in reading view.",
+	"description": "Create and show furigana above Japanese text in reading view.",
 	"author": "Joe Petrakovich",
 	"authorUrl": "https://joe.ptrkv.ch/about",
 	"isDesktopOnly": false
