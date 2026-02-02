@@ -23,7 +23,7 @@ export default class FuriganaPlugin extends Plugin {
 			let walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
 			let currentNode: Node | null = walker.nextNode();
 			while (currentNode) {
-				const text = currentNode.nodeValue?.trim();
+				const text = currentNode.nodeValue;
 				if (text) {
 					const token = this.tokenizer.tokenize(text);
 					const textWithFuriganaMarkup = sanitizeHTMLToDom(renderRuby(text, sanitizeToken(token)));
