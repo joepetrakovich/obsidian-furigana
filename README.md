@@ -1,4 +1,4 @@
-# Obsidian Furigana 
+# Japanese Furigana 
 
 An [Obsidian](https://obsidian.md) plugin for **creating and displaying furigana** above Japanese kanji in reading view.
 

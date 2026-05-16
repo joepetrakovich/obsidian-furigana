@@ -78,7 +78,7 @@ export class SettingTab extends PluginSettingTab {
 					.addColorPicker(color => {
 						let currentValue = this.plugin.settings.fontColor;
 						if (currentValue === DEFAULT_SETTINGS.fontColor) {
-							currentValue = getComputedStyle(document.body)
+							currentValue = getComputedStyle(activeDocument.body)
 								.getPropertyValue('--text-normal')
 								.trim();
 						}
@@ -120,7 +120,7 @@ export class SettingTab extends PluginSettingTab {
 							.setName("Dictionary is installed.")
 							.setDesc(`Dictionary files are stored in "vault/${this.plugin.dictionaryManager.getDataPath()}".`);
 					} else {
-						const warning = document.createDocumentFragment();
+						const warning = createFragment(); 
 						warning.createSpan({ text: "A 20.5 MB dictionary file is required to use this plugin.", cls: "mod-warning" });
 
 						setting
