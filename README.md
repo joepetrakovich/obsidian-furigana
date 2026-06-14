@@ -8,7 +8,7 @@ An [Obsidian](https://obsidian.md) plugin for **creating and displaying furigana
 - **hover-only mode** for Japanese learners who want to challenge themselves.
 - Adjustable font size and color
 
-[Bugs, Issues, and Feature Requests](https://github.com/joepetrakovich/obsidian-lmstudio-connect/issues)
+[Bugs, Issues, and Feature Requests](https://github.com/joepetrakovich/obsidian-furigana/issues)
 
 ## How to use
 1) After installing, navigate to the plugin settings and **download the required 20 MB dictionary files**.  
