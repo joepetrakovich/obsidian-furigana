@@ -78,7 +78,7 @@ export class SettingTab extends PluginSettingTab {
 					.addColorPicker(color => {
 						let currentValue = this.plugin.settings.fontColor;
 						if (currentValue === DEFAULT_SETTINGS.fontColor) {
-							currentValue = getComputedStyle(activeDocument.body)
+							currentValue = getComputedStyle(document.body)
 								.getPropertyValue('--text-normal')
 								.trim();
 						}

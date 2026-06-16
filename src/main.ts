@@ -23,6 +23,12 @@ export default class FuriganaPlugin extends Plugin {
 			let walker = activeDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT);
 			let currentNode: Node | null = walker.nextNode();
 			while (currentNode) {
+				const parent = currentNode.parentElement;
+				if (parent?.tagName?.toLowerCase() === 'ruby' || parent?.tagName?.toLowerCase() === 'rt') {
+					currentNode = walker.nextNode();
+					continue;
+				}
+
 				const text = currentNode.nodeValue;
 				if (text) {
 					const token = this.tokenizer.tokenize(text);
@@ -37,9 +43,9 @@ export default class FuriganaPlugin extends Plugin {
 	}
 
 	onunload() {
-		activeDocument.documentElement.style.removeProperty('--furigana-font-size');
-		activeDocument.documentElement.style.removeProperty('--furigana-font-color');
-		activeDocument.body.removeClass('furigana-hover');
+		document.documentElement.style.removeProperty('--furigana-font-size');
+		document.documentElement.style.removeProperty('--furigana-font-color');
+		document.body.removeClass('furigana-hover');
 	}
 
 	async loadSettings() {
@@ -53,9 +59,9 @@ export default class FuriganaPlugin extends Plugin {
 	loadStyles() {
 		const { showOnHover, fontSize, fontColor } = this.settings;
 
-		activeDocument.documentElement.style.setProperty('--furigana-font-size', `${fontSize}px`);
-		activeDocument.documentElement.style.setProperty('--furigana-font-color', `${fontColor}`);
-		activeDocument.body.toggleClass('furigana-hover', showOnHover);
+		document.documentElement.style.setProperty('--furigana-font-size', `${fontSize}px`);
+		document.documentElement.style.setProperty('--furigana-font-color', `${fontColor}`);
+		document.body.toggleClass('furigana-hover', showOnHover);
 	}
 
 	async loadTokenizer() {
