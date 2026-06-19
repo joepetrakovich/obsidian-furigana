@@ -1,7 +1,7 @@
 {
 	"id": "furigana",
 	"name": "Japanese Furigana",
-	"version": "1.5.3",
+	"version": "1.5.4",
 	"minAppVersion": "1.11.5",
 	"description": "Create and show furigana above Japanese text in reading view.",
 	"author": "Joe Petrakovich",
