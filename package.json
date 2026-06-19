@@ -1,6 +1,6 @@
 {
 	"name": "furigana",
-	"version": "1.5.2",
+	"version": "1.5.3",
 	"description": "Create and show furigana above Japanese text in reading view.",
 	"main": "main.js",
 	"type": "module",
