@@ -65,7 +65,6 @@ export default class FuriganaPlugin extends Plugin {
 	}
 
 	private applyStylesToDoc(doc: Document, fontSize: number, fontColor: string, showOnHover: boolean) {
-		console.log(fontColor);
 		doc.documentElement.style.setProperty('--furigana-font-size', `${fontSize}px`);
 		doc.documentElement.style.setProperty('--furigana-font-color', `${fontColor}`);
 		doc.body.toggleClass('furigana-hover', showOnHover);
