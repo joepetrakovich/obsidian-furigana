@@ -1,5 +1,7 @@
+import { RawToken } from "../types";
+
 // http://www.coelang.tufs.ac.jp/mt/ja/gmod/courses/c02/lesson12/step3/card/022.html
-const SPECIAL_MONTH_MAP = {
+const SPECIAL_MONTH_MAP: Record<string, string | undefined> = {
   1: 'いちがつ',
   2: 'にがつ',
   3: 'さんがつ',
@@ -27,18 +29,18 @@ const SPECIAL_MONTH_MAP = {
   '１２': 'じゅうにがつ',
 };
 
-const getMonthReading = date => SPECIAL_MONTH_MAP[date];
+const getMonthReading = (date: string): string | undefined => SPECIAL_MONTH_MAP[date];
 
-export const ruleMonth = (token) => {
-  const result = [];
+export const ruleMonth = (token: RawToken[]): RawToken[] => {
+  const result: RawToken[] = [];
   for (let i = 0; i < token.length; i++) {
-    const curr = token[i];
+    const curr = token[i]!;
 
     if (i >= token.length - 1) {
       result.push(curr);
       continue;
     }
-    const next = token[i + 1];
+    const next = token[i + 1]!;
 
     if (curr.pos_detail_1 !== '数') {
       result.push(curr);
@@ -56,7 +58,7 @@ export const ruleMonth = (token) => {
       continue;
     }
 
-    const replaced = {
+    const replaced: RawToken = {
       word_id: null,
       word_type: 'KNOWN',
       word_position: curr.word_position,

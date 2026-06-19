@@ -1,12 +1,14 @@
-const kanaToHira = (str = '') => str.replace(/[\u30a1-\u30f6]/g, (match) => {
+import { RawToken, ProcessedToken } from "../types";
+
+const kanaToHira = (str = ''): string => str.replace(/[\u30a1-\u30f6]/g, (match) => {
   const chr = match.charCodeAt(0) - 0x60;
   return String.fromCharCode(chr);
 });
 
-export const rulePurify = (token) => {
+export const rulePurify = (token: RawToken[]): ProcessedToken[] => {
   const pured = token
     .filter((t) => /[\u4E00-\u9FFF]/.test(t.surface_form))
-    .filter((t) => t.reading)
+    .filter((t): t is RawToken & { reading: string } => !!t.reading)
     .map((t) => ({
       s: t.surface_form,
       r: kanaToHira(t.reading),

@@ -1,5 +1,7 @@
+import { RawToken } from "../types";
+
 // http://www.coelang.tufs.ac.jp/mt/ja/gmod/courses/c02/lesson12/step3/card/022.html
-const SPECIAL_DATE_MAP = {
+const SPECIAL_DATE_MAP: Record<string, string | undefined> = {
   1: 'ついたち',
   2: 'ふつか',
   3: 'みっか',
@@ -49,24 +51,24 @@ const SPECIAL_DATE_MAP = {
   二十九: 'にじゅうくにち',
 };
 
-const getDateReading = date => SPECIAL_DATE_MAP[date];
+const getDateReading = (date: string): string | undefined => SPECIAL_DATE_MAP[date];
 
-export const ruleDate = (token) => {
-  const result = [];
+export const ruleDate = (token: RawToken[]): RawToken[] => {
+  const result: RawToken[] = [];
   for (let i = 0; i < token.length; i++) {
-    const curr = token[i];
+    const curr = token[i]!;
 
     if (i >= token.length - 1) {
       result.push(curr);
       continue;
     }
-    const next = token[i + 1];
+    const next = token[i + 1]!;
 
     if (i === 0) {
       result.push(curr);
       continue;
     }
-    const prev = token[i - 1];
+    const prev = token[i - 1]!;
 
     if (prev.surface_form !== '月' && prev.pos_detail_1 !== '副詞可能') {
       // not 5月 and 五月
@@ -90,7 +92,7 @@ export const ruleDate = (token) => {
       continue;
     }
 
-    const replaced = {
+    const replaced: RawToken = {
       word_id: null,
       word_type: 'KNOWN',
       word_position: curr.word_position,

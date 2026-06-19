@@ -1,4 +1,6 @@
-const SPECIAL_COUNTER_NUMBERS_MAP = {
+import { RawToken } from "../types";
+
+const SPECIAL_COUNTER_NUMBERS_MAP: Record<string, number | undefined> = {
   一: 1,
   二: 2,
   三: 3,
@@ -34,7 +36,7 @@ const SPECIAL_COUNTER_NUMBERS_MAP = {
 
 // rules from here:
 // http://www.coelang.tufs.ac.jp/mt/ja/gmod/contents/explanation/017.html
-const SPECIAL_COUNTER_MAP = {
+const SPECIAL_COUNTER_MAP: Record<string, (string | null)[]> = {
   人: [
     null,
     'ひとり',
@@ -156,7 +158,7 @@ const SPECIAL_COUNTER_MAP = {
   ],
 };
 
-const getCounterReading = (number, counter) => {
+const getCounterReading = (number: string, counter: string): string | null => {
   const _number = SPECIAL_COUNTER_NUMBERS_MAP[number];
 
   // cant use negivate condition because the 0 is make sense
@@ -169,20 +171,20 @@ const getCounterReading = (number, counter) => {
     return null;
   }
 
-  return _counter[_number];
+  return _counter[_number] ?? null;
 };
 
 
-export const ruleCounter = (token) => {
-  const result = [];
+export const ruleCounter = (token: RawToken[]): RawToken[] => {
+  const result: RawToken[] = [];
   for (let i = 0; i < token.length; i++) {
-    const curr = token[i];
+    const curr = token[i]!;
     if (i >= token.length - 1) {
       result.push(curr);
       continue;
     }
 
-    const next = token[i + 1];
+    const next = token[i + 1]!;
     if (curr.pos_detail_1 !== '数') {
       result.push(curr);
       continue;
@@ -199,7 +201,7 @@ export const ruleCounter = (token) => {
       continue;
     }
 
-    const replaced = {
+    const replaced: RawToken = {
       word_id: null,
       word_type: 'KNOWN',
       word_position: curr.word_position,

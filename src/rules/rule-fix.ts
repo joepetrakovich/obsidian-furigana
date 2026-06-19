@@ -1,7 +1,9 @@
 // kuromoji sometime returns the wrong word position
 // when the previous token is a multiple length symblo
 // this rule MUST be placed at the first rule
-export const ruleFix = (token) => {
+import { RawToken } from "../types";
+
+export const ruleFix = (token: RawToken[]): RawToken[] => {
   let currentPosition = -1;
   token.forEach((t) => {
     if (currentPosition === -1) {

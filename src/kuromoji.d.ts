@@ -1,6 +1,8 @@
+import { RawToken } from './types';
+
 declare module 'kuromoji' {
   export interface Tokenizer {
-    tokenize(text: string): unknown[];
+    tokenize(text: string): RawToken[];
   }
 
   export interface TokenizerBuilder {
