@@ -48,7 +48,6 @@ export class SettingTab extends PluginSettingTab {
 					.setName('Font size')
 					.addSlider(slider => {
 						slider
-							.setDynamicTooltip()
 							.setValue(this.plugin.settings.fontSize)
 							.setLimits(1, 36, 1)
 							.onChange(async (value) => {
@@ -78,7 +77,7 @@ export class SettingTab extends PluginSettingTab {
 					.addColorPicker(color => {
 						let currentValue = this.plugin.settings.fontColor;
 						if (currentValue === DEFAULT_SETTINGS.fontColor) {
-							currentValue = getComputedStyle(document.body)
+							currentValue = getComputedStyle(activeDocument.body)
 								.getPropertyValue('--text-normal')
 								.trim();
 						}

@@ -43,9 +43,9 @@ export default class FuriganaPlugin extends Plugin {
 	}
 
 	onunload() {
-		document.documentElement.style.removeProperty('--furigana-font-size');
-		document.documentElement.style.removeProperty('--furigana-font-color');
-		document.body.removeClass('furigana-hover');
+		for (const doc of this.getAllDocs()) {
+			this.removeStylesFromDoc(doc);
+		}
 	}
 
 	async loadSettings() {
@@ -55,13 +55,38 @@ export default class FuriganaPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+	
 
 	loadStyles() {
 		const { showOnHover, fontSize, fontColor } = this.settings;
+		for (const doc of this.getAllDocs()) {
+			this.applyStylesToDoc(doc, fontSize, fontColor, showOnHover);
+		}
+	}
 
-		document.documentElement.style.setProperty('--furigana-font-size', `${fontSize}px`);
-		document.documentElement.style.setProperty('--furigana-font-color', `${fontColor}`);
-		document.body.toggleClass('furigana-hover', showOnHover);
+	private applyStylesToDoc(doc: Document, fontSize: number, fontColor: string, showOnHover: boolean) {
+		console.log(fontColor);
+		doc.documentElement.style.setProperty('--furigana-font-size', `${fontSize}px`);
+		doc.documentElement.style.setProperty('--furigana-font-color', `${fontColor}`);
+		doc.body.toggleClass('furigana-hover', showOnHover);
+	}
+
+	private removeStylesFromDoc(doc: Document) {
+		doc.documentElement.style.removeProperty('--furigana-font-size');
+		doc.documentElement.style.removeProperty('--furigana-font-color');
+		doc.body.removeClass('furigana-hover');
+	}
+
+	private getAllDocs(): Document[] {
+		const docs = new Set<Document>();
+		docs.add(activeDocument);
+		this.app.workspace.iterateAllLeaves((leaf) => {
+			const el = leaf.view.containerEl
+			if (el) {
+				docs.add(el.doc)
+			}
+		});
+		return [...docs];
 	}
 
 	async loadTokenizer() {
